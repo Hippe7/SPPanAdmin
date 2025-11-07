@@ -10,8 +10,11 @@ import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.realm.Realm;
+import org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO;
+import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,12 +47,27 @@ public class ShiroConfig {
         return new MemoryConstrainedCacheManager();
     }
 
+    @Bean(name = "sessionDAO")
+    @ConditionalOnMissingBean
+    public SessionDAO sessionDAO() {
+        return new EnterpriseCacheSessionDAO();
+    }
+
     @Bean(name = "securityManager")
     @ConditionalOnMissingBean
     public DefaultSecurityManager securityManager() {
-        DefaultSecurityManager sm = new DefaultWebSecurityManager();
+        DefaultWebSecurityManager sm = new DefaultWebSecurityManager();
         sm.setCacheManager(cacheManager());
+        sm.setSessionManager(sessionManager());
         return sm;
+    }
+
+    @Bean(name = "sessionManager")
+    @ConditionalOnMissingBean
+    public DefaultWebSessionManager sessionManager() {
+        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        sessionManager.setSessionDAO(sessionDAO());
+        return sessionManager;
     }
 
 	@Bean(name = "shiroFilter")

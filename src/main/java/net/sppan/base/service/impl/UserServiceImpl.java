@@ -20,6 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import net.sppan.base.service.ISessionService;
+
 /**
  * <p>
  * 用户账户表  服务实现类
@@ -36,6 +38,9 @@ public class UserServiceImpl extends BaseServiceImpl<User, Integer> implements I
 	
 	@Autowired
 	private IRoleService roleService;
+	
+	@Autowired
+	private ISessionService sessionService;
 	
 	@Override
 	public IBaseDao<User, Integer> getBaseDao() {
@@ -95,6 +100,9 @@ public class UserServiceImpl extends BaseServiceImpl<User, Integer> implements I
 		}
 		user.setRoles(roles);
 		update(user);
+		
+		// 失效该用户的所有会话，确保权限实时更新
+		sessionService.invalidateSessionsByUserId(id);
 	}
 
 	@Override
