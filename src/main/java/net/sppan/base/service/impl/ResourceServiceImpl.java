@@ -108,5 +108,14 @@ public class ResourceServiceImpl extends BaseServiceImpl<Resource, Integer>
 		}
 		return resourceDao.findAllByNameContaining(searchText, pageRequest);
 	}
-	
+
+	@Override
+	public Resource findByName(String name) {
+		return resourceDao.findByName(name);
+	}
+
+	@Override
+	public List<Resource> findAllByParent(Resource parent) {
+		return resourceDao.findAllByParent(parent);
+	}
 }

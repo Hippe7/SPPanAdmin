@@ -39,5 +39,18 @@ public interface IResourceService extends IBaseService<Resource, Integer> {
 	 * @return
 	 */
 	Page<Resource> findAllByLike(String searchText, PageRequest pageRequest);
-
+	
+	/**
+	 * 根据名称查找资源
+	 * @param name
+	 * @return
+	 */
+	Resource findByName(String name);
+	
+	/**
+	 * 根据父资源查找所有子资源
+	 * @param parent
+	 * @return
+	 */
+	List<Resource> findAllByParent(Resource parent);
 }

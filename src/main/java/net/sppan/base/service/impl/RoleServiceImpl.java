@@ -2,6 +2,7 @@ package net.sppan.base.service.impl;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+
+import net.sppan.base.service.ISessionService;
 
 import net.sppan.base.common.Constats;
 import net.sppan.base.dao.IRoleDao;
@@ -36,6 +39,8 @@ public class RoleServiceImpl extends BaseServiceImpl<Role, Integer> implements I
 	private IRoleDao roleDao;
 	@Autowired
 	private IResourceService resourceService;
+	@Autowired
+	private ISessionService sessionService;
 	
 	@Override
 	public IBaseDao<Role, Integer> getBaseDao() {
@@ -55,7 +60,29 @@ public class RoleServiceImpl extends BaseServiceImpl<Role, Integer> implements I
 		}else{
 			role.setCreateTime(new Date());
 			role.setUpdateTime(new Date());
+			// 新增角色时自动分配资源管理菜单及其所有子资源的权限
+			Resource resource = resourceService.findByName("资源管理");
+			if (resource != null) {
+				Set<Resource> resources = new HashSet<>();
+				// 递归获取所有子资源
+				findAllChildResources(resource, resources);
+				role.setResources(resources);
+			}
 			save(role);
+		}
+	}
+	
+	/**
+	 * 递归获取所有子资源
+	 * @param parentResource
+	 * @param resources
+	 */
+	private void findAllChildResources(Resource parentResource, Set<Resource> resources) {
+		resources.add(parentResource);
+		// 查找所有父资源为当前资源的子资源
+		List<Resource> childResources = resourceService.findAllByParent(parentResource);
+		for (Resource childResource : childResources) {
+			findAllChildResources(childResource, resources);
 		}
 	}
 
@@ -89,6 +116,9 @@ public class RoleServiceImpl extends BaseServiceImpl<Role, Integer> implements I
 		}
 		role.setResources(resources);
 		update(role);
+		
+		// 失效拥有该角色的所有用户会话，确保权限实时更新
+		sessionService.invalidateSessionsByRoleId(id);
 	}
 
 	@Override

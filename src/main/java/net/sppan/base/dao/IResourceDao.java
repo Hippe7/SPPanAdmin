@@ -23,4 +23,8 @@ public interface IResourceDao extends IBaseDao<Resource, Integer> {
 
 	List<Resource> findAllByOrderByParentAscIdAscSortAsc();
 
+Resource findByName(String name);
+
+List<Resource> findAllByParent(Resource parent);
+
 }
